@@ -1,1 +1,5 @@
 bin/
+
+# Derby database files
+ijtest/
+derby.log
