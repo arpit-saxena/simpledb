@@ -13,16 +13,39 @@ public class SimpleIJ {
       try (Connection conn = d.connect(s, null);
            Statement stmt = conn.createStatement()) {
          System.out.print("\nSQL> ");
+         String cmd = "";
          while (sc.hasNextLine()) {
             // process one line of input
-            String cmd = sc.nextLine().trim();
-            if (cmd.startsWith("exit"))
-               break;
-            else if (cmd.startsWith("select"))
-               doQuery(stmt, cmd);
-            else
-               doUpdate(stmt, cmd);
-            System.out.print("\nSQL> ");
+            String line = sc.nextLine().trim();
+            int lineIdx = 0;
+            int semicolonIdx = line.indexOf(";", lineIdx);
+            
+            boolean exit = false;
+            while (semicolonIdx != -1 && lineIdx < line.length()) {
+               cmd += line.substring(lineIdx, semicolonIdx);
+               // System.out.println("Will execute cmd: " + cmd);
+               if (cmd.startsWith("exit")) {
+                  exit = true;
+                  break;
+               } else if (cmd.startsWith("select")) {
+                  doQuery(stmt, cmd);
+               } else {
+                  doUpdate(stmt, cmd);
+               }
+
+               cmd = "";
+               lineIdx = semicolonIdx + 1;
+            }
+
+            if (exit) break;
+
+            if (lineIdx < line.length()) {
+               // some other command is in progress, which has not been ended by a semicolon
+               cmd += line.substring(lineIdx) + " ";
+               System.out.print("> ");
+            } else {
+               System.out.print("SQL> ");
+            }
          }
       }
       catch (SQLException e) {
